@@ -1,0 +1,200 @@
+1. Add new hard disk drive (HDD): Physically connect the new hard disk drive to the servers. 
+
+2. Create a directory for mounting the new drive:
+   
+   #mkdir /mnt/disk1
+   
+   This command will create a new directory where the new hard disk will be mounted. 
+
+3. Format in XFS and create a filesystem on the new hard disk: To do this, you will have to partition the hard disk, format it with a file syste then mount it
+
+   #mount /dev/sdb1 /mnt/disk1
+
+4. Edit the /etc/hosts file: Open the hosts file with a text editor:
+   
+   #nano /etc/hosts
+   
+   Then, add the following lines to the file, which will map the IP addresses to the server names:
+   txt
+   192.168.xxx.xxx  server1.hpcsa.com server1
+   192.168.xxx.xxx  server2.hpcsa.com server2
+   192.168.xxx.xxx  server3.hpcsa.com server3
+   192.168.xxx.xxx  client.hpcsa.com client
+   
+   Replace the "xxx" with the actual numbers of each server and client's IP address.
+
+5. Stop the firewall service: Run the following command to stop the firewall service on each server:
+   
+   systemctl stop firewalld
+   
+   
+6. Install the required packages: Install wget, centos-release-gluster, epel-release, and glusterfs-server packages:
+   
+   yum install wget centos-release-gluster epel-release glusterfs-server -y
+   
+
+7. Start and enable Gluster daemon: The following commands will start the gluster daemon and set it to start automatically at boot:
+   
+   systemctl start glusterd
+   systemctl enable glusterd
+   
+   
+8. Add peers: Add other servers as peers to the GlusterFS cluster from node 1:
+   
+   gluster peer probe node2.hpcsa.in
+   gluster peer probe node3.hpcsa.in
+   
+   
+9. Check the status of the GlusterFS cluster: The following inmands will display the status of the peers and the list of nodes in the pool:
+   
+   gluster peer status
+   gluster pool list
+   
+   
+10. Create a new directory for the Gluster volume on each node: 
+   
+   mkdir /mnt/disk1/diskvol
+   
+   
+11. Create and start a Gluster volume: This inmand creates a Gluster volume named 'gdisk1' with a replication factor of 3. It then starts the volume:
+   
+
+   
+   gluster volume create gdisk2 replica 3 node1.hpcsa.in:/mnt/disk1/diskvol/gdisk2  node2.hpcsa.in:/mnt/disk1/diskvol/gdisk2  node3.hpcsa.in:/mnt/disk1/diskvol/gdisk2
+
+   
+   gluster volume start gdisk2
+   
+   
+12. Display information about the Gluster volume: This inmand displays information about the 'gdisk1' volume:
+   
+   gluster volume info gdisk2
+   
+   
+13. On the client, install glusterfs-fuse package: This package allows GlusterFS volumes to be mounted via fuse:
+   
+   yum install glusterfs-fuse
+   
+   
+14. Create a directory for mounting the Gluster volume:
+   
+   mkdir /mnt/gdrive
+   
+   
+15. Mount the Gluster volume on the client: This inmand mounts the 'gdisk1' volume to the newly created directory:
+   
+   mount -t glusterfs node1.hpcsa.in:/gdisk2 /mnt/gdrive
+   
+   Now, the Gluster volume 'gdisk1' is available on the client at the '/mnt/gdrive' directory.
+   
+16.Create Distributed replica and start a Gluster volume: This inmand creates a Gluster volume named 'gdisk4' with a replication factor of 3. It then starts the volume:
+
+gluster volume create gdisk4 node1.hpcsa.in:/mnt/disk1/diskvol/gdisk4  node2.hpcsa.in:/mnt/disk1/diskvol/gdisk4 node3.hpcsa.in:/mnt/disk1/diskvol/gdisk4
+
+gluster volume create gdisk5 disperse 3 redundancy 1 node1.hpcsa.in:/mnt/disk1/diskvol/gdisk5  node2.hpcsa.in:/mnt/disk1/diskvol/gdisk5 node3.hpcsa.in:/mnt/disk1/diskvol/gdisk5
+
+Then start gdisk5 and see info
+
+gluster volume start gdisk5
+gluster volume info gdisk5
+
+After that go to the client machine and mount disk
+
+mount -t glusterfs node1.hpcsa.in:/gdisk5 /mnt/gdrive5
+dd if=/dev/zero of=file1.data bs=1024 count=2046
+
+cd /mnt/gdrive5
+ls /mnt/disk1/diskvol/gdisk5/
+
+
+
+
+  
+[root@node1 gdisk2]# cat /tmp/history.txt
+lsblk
+hostname
+nano /etc/hosts
+vi /etc/hosts
+yum install nano
+nano /etc/hosts
+clear
+ping client.hpcsa.in
+systemctl stop firewalld
+clear
+fdisk /dev/sdb
+mkfs.xfs /dev/sdb1
+clear
+mkdir /mnt/disk1
+mount /dev/sdb1 /mnt/disk1/
+lsblk
+   
+   
+yum install wget centos-release-gluster epel-release glusterfs-node -y
+clear
+systemctl start glusterd
+systemctl status glusterd
+
+gluster peer probe node2.hpcsa.in
+gluster peer probe node3.hpcsa.in
+
+gluster peer status
+
+gluster pool list
+
+mkdir /mnt/disk1/diskvol
+
+gluster volume create gdisk3 replica 3 node1.hpcsa.in:/mnt/disk1/diskvol/gdisk3  node2.hpcsa.in:/mnt/disk1/diskvol/gdisk3 node3.hpcsa.in:/mnt/disk1/diskvol/gdisk3
+
+ls /mnt/disk1/diskvol/gdisk3/
+
+gluster volume start gdisk3
+gluster volume info gdisk3
+
+df -h
+cd /mnt/disk1/
+ls
+cd diskvol/
+ls
+du -sh gdisk3/
+cd gdisk3/
+----------------------------------------
+Distributed replica
+
+gluster volume create gdisk4 node1.hpcsa.in:/mnt/disk1/diskvol/gdisk4  node2.hpcsa.in:/mnt/disk1/diskvol/gdisk4 node3.hpcsa.in:/mnt/disk1/diskvol/gdisk4
+
+gluster volume create gdisk5 disperse 3 redundancy 1 node1.hpcsa.in:/mnt/disk1/diskvol/gdisk5  node2.hpcsa.in:/mnt/disk1/diskvol/gdisk5 node3.hpcsa.in:/mnt/disk1/diskvol/gdisk5
+
+gluster volume info gdisk5
+
+
+
+-----------------------------------------
+# gluster volume create <volume name> [replica <COUNT>] [transport <tcp|rdma|tcp,rdma>] <Node IP/hostname>:<brick path>.... [force]
+
+e.g.
+
+# gluster volume create repl_vol replica 3 node1:/mnt/brick1/data node2:/mnt/brick1/data node3:/mnt/brick1/data node1:/mnt/brick2/data node2:/mnt/brick2/data node3:/mnt/brick2/data
+
+
+
+-----------------On Client-----------------------------
+yum install -y vim
+nano /etc/nodes
+systemctl stop firewalld
+
+
+yum install glusterfs-fuse
+mkdir /mnt/gdrive
+mount -t glusterfs node1.hpcsa.in:/gdisk3 /mnt/gdrive
+df -h
+lsblk
+cd /mnt/gdrive/
+
+dd if=/dev/zero of=file.data bs=1024 count=1236778675
+df -h
+ls
+history
+
+
+
+
