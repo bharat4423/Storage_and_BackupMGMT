@@ -1,0 +1,154 @@
+==================================================================================================
+                        Configure GlusterFS Practical 
+==================================================================================================
+
+Prequisite:-
+ADD Three new hardisk in all node's in VM's
+--------------------------------------------------------------------------------------------------
+node1 : 1GB RAM, 20+20+20 GB HDD, NAT
+node2  : 1GB RAM, 20+20+20 GB HDD, NAT
+node3  : 1GB RAM, 20+20+20 GB HDD, NAT
+Client : 1GB RAM, 20 GB HDD, NAT
+               
+==================================================================================================
+Do this below steps On All Machines
+-------------------------------------
+# systemctl stop firewalld.service && systemctl disable firewalld.service
+# setenforce 0; getenforce
+#yum install rsync -y ; yum install vim -y
+----------------------
+Do On node1 Machine
+----------------------
+# vi /etc/hosts
+192.168.20.153  node1.hpcsa.in node1
+192.168.20.154  node2.hpcsa.in node2
+192.168.20.155  node3.hpcsa.in node3
+192.168.20.156  client.hpcsa.in client
+
+# rsync /etc/hosts root@node2.hpcsa.in:/etc/hosts
+# rsync /etc/hosts root@node3.hpcsa.in:/etc/hosts
+# rsync /etc/hosts root@client.hpcsa.in:/etc/hosts
+
+----------------------------
+Do On node 1,2,3 Machines
+----------------------------
+# fdisk /dev/sdb
+# mkfs.ext4 /dev/sdb1
+# mkdir /mnt/disk1
+# mount /dev/sdb1 /mnt/disk1
+# lsblk
+# yum install centos-release-gluster -y
+# yum install epel-release -y
+# yum install glusterfs-server -y
+# systemctl start glusterd.service && systemctl enable glusterd.service &&   systemctl status glusterd.service
+
+---------------------
+Do On node 1 Machines
+-----------------------
+# gluster peer probe node2.hpcsa.in
+# gluster peer probe node3.hpcsa.in
+# gluster pool list
+# gluster peer status
+
+---------------------------
+Do On All nodes Machines
+---------------------------
+# mkdir /mnt/disk1/diskvol
+
+----------------------------------------------
+Do Gluster Replication method On node 1 Machines only
+----------------------------------------------
+# gluster volume create gdisk1 replica 3 node1.hpcsa.in:/mnt/disk1/diskvol/gdisk1 node2.hpcsa.in:/mnt/disk1/diskvol/gdisk1 node3.hpcsa.in:/mnt/disk1/diskvol/gdisk1
+# gluster volume start gdisk1
+# gluster volume info gdisk1
+
+-----------------------------------------
+Run below command on Client Machine only 
+-----------------------------------------
+# yum install glusterfs-fuse -y
+# mkdir /mnt/gdrive
+# mount -t glusterfs node1.hpcsa.in:/gdisk1 /mnt/gdrive
+# df –h
+# cd /mnt/gdrive/
+# dd if=/dev/zero of=file.txt bs=1024 count=1024 
+
+------------------------------------------------
+Check created file in below path in all 3 node's
+-------------------------------------------------
+cd /mnt/disk1/diskvol/gdisk1/ 
+ls /mnt/disk1/diskvol/gdisk1/
+
+----------------------------------------------
+GlusterFS Distributed on node 1 Machines only
+----------------------------------------------
+
+# gluster volume create gdisk2 node1.hpcsa.in:/mnt/disk1/diskvol/gdisk2 node2.hpcsa.in:/mnt/disk1/diskvol/gdisk2 node3.hpcsa.in:/mnt/disk1/diskvol/gdisk2
+# gluster volume start gdisk2
+# gluster volume info gdisk2
+
+-----------------------
+Run on Client Machine
+-----------------------
+
+# mkdir /mnt/distribute
+# mount -t glusterfs node1.hpcsa.in:/gdisk2 /mnt/distribute
+# df –h
+# cd /mnt/distribute/
+
+#for i in {1..6}; do dd if=/dev/zero bs=10 count=2046 of=file$i; done
+
+-----------------------------------------------------------------------
+Check your 6 files are distributed in all 3 node's machines randomly and you can check it distributed files in this path  /mnt/disk1/diskvol/gdisk2/   of all 3 nodes machines
+------------------------------------------------------------------------
+cd /mnt/disk1/diskvol/gdisk2/
+ls /mnt/disk1/diskvol/gdisk2/
+
+---------------------------------------------
+Gluster Disperse on node 1 Machines
+---------------------------------------------
+# gluster volume create gdisk3 disperse 3 node1.hpcsa.in:/mnt/disk1/diskvol/gdisk3 node2.hpcsa.in:/mnt/disk1/diskvol/gdisk3 node3.hpcsa.in:/mnt/disk1/diskvol/gdisk3
+# gluster volume start gdisk3
+# gluster volume info gdisk3
+
+---------------------------------------
+Run below steps on Client Machine
+---------------------------------------
+# mkdir /mnt/disperse
+# mount -t glusterfs node1.hpcsa.in:/gdisk1 /mnt/disperse
+# df –h
+# cd /mnt/disperse/
+# dd if=/dev/zero of=file.txt bs=1024 count=1024 
+
+------------------------------------------------------
+Check in 2 node nodes file will be stored in disperse mode & in remaining node parity of the file will be store
+--------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

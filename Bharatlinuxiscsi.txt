@@ -1,0 +1,109 @@
+[root@localhost ~]# hostnamectl set-hostname iscsi
+[root@localhost ~]# su
+[root@iscsi ~]# yum install iscsi-initiator-utils
+Loaded plugins: fastestmirror
+Determining fastest mirrors
+ * base: centos.mirror.net.in
+ * extras: centos.mirror.net.in
+ * updates: centos.mirror.net.in
+base                                                          | 3.6 kB  00:00:00
+extras                                                        | 2.9 kB  00:00:00
+updates                                                       | 2.9 kB  00:00:00
+(1/4): base/7/x86_64/group_gz                                 | 153 kB  00:00:00
+(2/4): extras/7/x86_64/primary_db                             | 250 kB  00:00:00
+(3/4): updates/7/x86_64/primary_db                            |  22 MB  00:00:00
+(4/4): base/7/x86_64/primary_db                               | 6.1 MB  00:00:03
+Resolving Dependencies
+--> Running transaction check
+---> Package iscsi-initiator-utils.x86_64 0:6.2.0.874-22.el7_9 will be installed
+--> Processing Dependency: iscsi-initiator-utils-iscsiuio >= 6.2.0.874-22.el7_9 for package: iscsi-initiator-utils-6.2.0.874-22.el7_9.x86_64
+--> Running transaction check
+---> Package iscsi-initiator-utils-iscsiuio.x86_64 0:6.2.0.874-22.el7_9 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+=====================================================================================
+ Package                           Arch      Version                Repository  Size
+=====================================================================================
+Installing:
+ iscsi-initiator-utils             x86_64    6.2.0.874-22.el7_9     updates    423 k
+Installing for dependencies:
+ iscsi-initiator-utils-iscsiuio    x86_64    6.2.0.874-22.el7_9     updates     94 k
+
+Transaction Summary
+=====================================================================================
+Install  1 Package (+1 Dependent package)
+
+Total download size: 517 k
+Installed size: 2.5 M
+Is this ok [y/d/N]: y
+Downloading packages:
+warning: /var/cache/yum/x86_64/7/updates/packages/iscsi-initiator-utils-iscsiuio-6.2.0.874-22.el7_9.x86_64.rpm: Header V3 RSA/SHA256 Signature, key ID f4a80eb5: NOKEY
+Public key for iscsi-initiator-utils-iscsiuio-6.2.0.874-22.el7_9.x86_64.rpm is not installed
+(1/2): iscsi-initiator-utils-iscsiuio-6.2.0.874-22.el7_9.x86_ |  94 kB  00:00:00
+(2/2): iscsi-initiator-utils-6.2.0.874-22.el7_9.x86_64.rpm    | 423 kB  00:00:00
+-------------------------------------------------------------------------------------
+Total                                                   2.0 MB/s | 517 kB  00:00
+Retrieving key from file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+Importing GPG key 0xF4A80EB5:
+ Userid     : "CentOS-7 Key (CentOS 7 Official Signing Key) <security@centos.org>"
+ Fingerprint: 6341 ab27 53d7 8a78 a7c2 7bb1 24c6 a8a7 f4a8 0eb5
+ Package    : centos-release-7-9.2009.0.el7.centos.x86_64 (@anaconda)
+ From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+Is this ok [y/N]: y
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : iscsi-initiator-utils-iscsiuio-6.2.0.874-22.el7_9.x86_64          1/2
+  Installing : iscsi-initiator-utils-6.2.0.874-22.el7_9.x86_64                   2/2
+  Verifying  : iscsi-initiator-utils-6.2.0.874-22.el7_9.x86_64                   1/2
+  Verifying  : iscsi-initiator-utils-iscsiuio-6.2.0.874-22.el7_9.x86_64          2/2
+
+Installed:
+  iscsi-initiator-utils.x86_64 0:6.2.0.874-22.el7_9
+
+Dependency Installed:
+  iscsi-initiator-utils-iscsiuio.x86_64 0:6.2.0.874-22.el7_9
+
+Complete!
+[root@iscsi ~]# cd /etc/is
+iscsi/     issue      issue.net
+[root@iscsi ~]# cd /etc/iscsi/
+[root@iscsi iscsi]# ls
+initiatorname.iscsi  iscsid.conf
+[root@iscsi iscsi]# cat initiatorname.iscsi
+InitiatorName=iqn.1994-05.com.redhat:bf1b2b9bce20
+[root@iscsi iscsi]# lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda               8:0    0   20G  0 disk
+├─sda1            8:1    0    1G  0 part /boot
+└─sda2            8:2    0   19G  0 part
+  ├─centos-root 253:0    0   17G  0 lvm  /
+  └─centos-swap 253:1    0    2G  0 lvm  [SWAP]
+sr0              11:0    1  973M  0 rom
+[root@iscsi iscsi]# iscsiadm -m discovery -t st -p 192.168.100.209
+^[[D^Ciscsiadm: caught SIGINT, exiting...
+[root@iscsi iscsi]# iscsiadm -m discovery -t st -p 192.168.20.146
+192.168.20.146:3260,-1 iqn.2005-10.org.freenas.ctl:lab1-target
+192.168.20.146:3260,-1 iqn.2005-10.org.freenas.ctl:linux
+[root@iscsi iscsi]# iscsiadm -m discovery -t st -p 192.168.20.146
+192.168.20.146:3260,-1 iqn.2005-10.org.freenas.ctl:lab1-target
+192.168.20.146:3260,-1 iqn.2005-10.org.freenas.ctl:linux
+[root@iscsi iscsi]# iscsiadm -m discovery -t st -p 192.168.20.146
+192.168.20.146:3260,-1 iqn.2005-10.org.freenas.ctl:linux
+[root@iscsi iscsi]# iscsiadm -m discovery -t st -p 192.168.20.146 --login
+192.168.20.146:3260,-1 iqn.2005-10.org.freenas.ctl:linux
+Logging in to [iface: default, target: iqn.2005-10.org.freenas.ctl:linux, portal: 192.168.20.146,3260] (multiple)
+Login to [iface: default, target: iqn.2005-10.org.freenas.ctl:linux, portal: 192.168.20.146,3260] successful.
+[root@iscsi iscsi]# lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda               8:0    0   20G  0 disk
+├─sda1            8:1    0    1G  0 part /boot
+└─sda2            8:2    0   19G  0 part
+  ├─centos-root 253:0    0   17G  0 lvm  /
+  └─centos-swap 253:1    0    2G  0 lvm  [SWAP]
+sdb               8:16   0    2G  0 disk
+sr0              11:0    1  973M  0 rom
+[root@iscsi iscsi]#
